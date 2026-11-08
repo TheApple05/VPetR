@@ -20,7 +20,13 @@ The self-contained build is written to `Rimuru/dist/Rimuru-VPet`. The builder ex
 
 To use just the character, copy `VPet-Simulator.Windows/mod/0100_rimuru` into another VPet installation's `mod` folder, enable **Rimuru Companion**, select **Rimuru**, choose **English**, and restart. That installation still needs its normal Core module.
 
-## Validation
+## Automatic updates
+
+On each normal launch, the app checks stable `rimuru-v` releases from **TheApple05/VPetR** in the background. New Windows portable downloads are verified against GitHub's SHA-256 digest and installed after all instances in this folder close normally. The next launch uses the update. Settings, saves, and other mods are preserved; replaced application files are backed up in the Windows temporary folder, and copy failures trigger rollback. Offline checks leave the installed version usable.
+
+Create an empty `disable-auto-updates.txt` beside the executable to turn off checks. Update results are written to `rimuru-update.log`. Diagnostic launches skip updates. Version 2.0.0 needs a one-time upgrade to 2.1.0 to gain this feature.
+
+## Native checks
 
 The WPF check program tests frozen-frame reuse, playback restarts, idle eviction, source-change invalidation, truncated-cache recovery, and disposal. Its mod check resolves 196 mood/action combinations and plays all 21 pose families through the real native renderer.
 

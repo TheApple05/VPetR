@@ -34,4 +34,6 @@ SingleTips:|tutorial#2026/11/03:|helloworld#True:|
 '@ | Set-Content -LiteralPath $settingsPath -Encoding utf8
 }
 Copy-Item -LiteralPath (Join-Path $taskRoot 'Launch-Rimuru.cmd') -Destination $output -Force
+Copy-Item -LiteralPath (Join-Path $taskRoot 'Update-Rimuru.ps1') -Destination $output -Force
+Copy-Item -LiteralPath (Join-Path $taskRoot 'version.txt') -Destination (Join-Path $output 'rimuru-version.txt') -Force
 Write-Host "Ready: $output"
