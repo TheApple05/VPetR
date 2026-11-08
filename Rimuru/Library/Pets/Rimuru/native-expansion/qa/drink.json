@@ -1,0 +1,69 @@
+{
+  "ok": true,
+  "state": "drink",
+  "frames": 6,
+  "shared_scale": 0.8877551020408163,
+  "source_sha256": "c8c91364f3d8fbbf37d9c0815032be15ac9ef982bf9a12d56c2743e7b8ddfdd5",
+  "poses": [
+    {
+      "frame": 0,
+      "bbox": [
+        48,
+        28,
+        143,
+        203
+      ],
+      "sha256": "3d2eb0442e9fb8e0b13cff3f0be2d24646c3d531ad3d6118e4058711698bff4c"
+    },
+    {
+      "frame": 1,
+      "bbox": [
+        49,
+        28,
+        142,
+        203
+      ],
+      "sha256": "1c5eed6d9718d32f9891dd7b2bd810103c78b8f7a62e978a92e0f5bf6c4479fb"
+    },
+    {
+      "frame": 2,
+      "bbox": [
+        49,
+        28,
+        142,
+        203
+      ],
+      "sha256": "82b633cdffa0017530550d67adf40f79fc7c5e72bb0e2739d115e2abc6719121"
+    },
+    {
+      "frame": 3,
+      "bbox": [
+        49,
+        28,
+        142,
+        203
+      ],
+      "sha256": "b40f78b115e21aa000e3860a40f7b698dee2038af50da86f3aa765dc30e65748"
+    },
+    {
+      "frame": 4,
+      "bbox": [
+        49,
+        28,
+        142,
+        203
+      ],
+      "sha256": "2780a67945c7f1f451e1b8f9fd6bb979f9b632b1ba8c4d2e276bdfad3d4cd4e3"
+    },
+    {
+      "frame": 5,
+      "bbox": [
+        49,
+        28,
+        143,
+        203
+      ],
+      "sha256": "22e93f546e34b40b5064ab6c5ef408fde0b6b59ef7594798c2044368c7de6b18"
+    }
+  ]
+}

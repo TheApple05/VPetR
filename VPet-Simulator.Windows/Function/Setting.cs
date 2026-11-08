@@ -165,7 +165,7 @@ namespace VPet_Simulator.Windows
         /// </summary>
         public string Language
         {
-            get => GetString("language", "null")!;
+            get => GetString("language", "en")!;
             set => this[(gstr)"language"] = value;
         }
         public string Font
@@ -350,7 +350,7 @@ namespace VPet_Simulator.Windows
         /// </summary>
         public string PetGraph
         {
-            get => this["gameconfig"].GetString("petgraph", "vup")!;
+            get => this["gameconfig"].GetString("petgraph", "rimuru")!;
             set => this["gameconfig"].SetString("petgraph", value);
         }
 

@@ -371,3 +371,12 @@ VPet-Simulator.Windows/mod/0001_ModMaker
 /tests
 /VPet-Simulator.Windows/mod/OnlineVPet
 .DS_Store
+
+# Rimuru local tooling and runtime data
+/Rimuru/.tools/
+/Rimuru/dist/
+/Rimuru/Library/Pets/Rimuru/qa/
+/Rimuru/Library/Pets/Rimuru/native-expansion/qa/*-contact.png
+/Rimuru/Library/Pets/Rimuru/native-expansion/qa/*.gif
+__pycache__/
+*.pyc

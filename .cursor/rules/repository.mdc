@@ -1,0 +1,9 @@
+---
+description: Use the user's VPetR fork for this project
+alwaysApply: true
+---
+
+- The project repository is https://github.com/TheApple05/VPetR.
+- Use TheApple05/VPetR for future source fetches and any explicitly requested pushes or pull requests.
+- Never push, open pull requests, or submit contributions to LorisYounger/VPet.
+- Preserve upstream attribution and licenses; those do not authorize contributions.

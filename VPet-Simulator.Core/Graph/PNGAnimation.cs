@@ -4,6 +4,9 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
+using System.Linq;
+using System.Security.Cryptography;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
@@ -49,8 +52,7 @@ namespace VPet_Simulator.Core
         private BitmapSource? SpriteSheetSource;
         private Int32Rect[]? FrameRects;
         private readonly object SpriteSheetLock = new object();
-        private BitmapSource? CurrentFrame;
-        private int CurrentFrameIndex = -1;
+        private BitmapSource?[]? CachedFrames;
         private volatile bool disposed;
         private int FrameWidth;
         private int FrameHeight;
@@ -93,7 +95,7 @@ namespace VPet_Simulator.Core
                 Picture.LoadGraph(graph, path, info);
                 return;
             }
-            var paths = p.GetFiles("*.png");
+            var paths = p.GetFiles("*.png").OrderBy(file => file.Name, StringComparer.OrdinalIgnoreCase).ToArray();
             if (paths.Length == 0)
             {
                 return;
@@ -124,7 +126,10 @@ namespace VPet_Simulator.Core
             {
                 //新方法:加载大图片
                 //生成大文件加载非常慢,先看看有没有缓存能用
-                Path = System.IO.Path.Combine(GraphCore.CachePath, $"{GraphCore!.Resolution}_{Math.Abs(Sub.GetHashCode(path))}_{paths.Length}.png");
+                // shortcut: cache identity uses file metadata; hash content if asset tools preserve timestamps and lengths.
+                var identity = string.Join("|", paths.Select(file => $"{file.FullName}|{file.Length}|{file.LastWriteTimeUtc.Ticks}"));
+                var digest = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(identity)));
+                Path = System.IO.Path.Combine(GraphCore.CachePath, $"{GraphCore!.Resolution}_{digest}.png");
                 var sem = GraphCore.SpriteSheetBuildLocks.GetOrAdd(Path, _ => new SemaphoreSlim(1, 1));
                 await sem.WaitAsync();
                 try
@@ -307,14 +312,6 @@ namespace VPet_Simulator.Core
                 Control.Type = TaskControl.ControlType.Status_Stoped;
                 if (!parent.disposed && ReferenceEquals(parent.Control, Control))
                 {
-                    lock (parent.SpriteSheetLock)
-                    {
-                        // The displayed Image keeps its last frame; stopped animations
-                        // need not retain another reference to the entire sprite sheet.
-                        parent.CurrentFrame = null;
-                        parent.CurrentFrameIndex = -1;
-                        parent.SpriteSheetSource = null;
-                    }
                     var endAction = Control.EndAction;
                     Control.EndAction = null;
                     endAction?.Invoke();
@@ -423,14 +420,14 @@ namespace VPet_Simulator.Core
                 if (disposed || FrameRects == null)
                     return null;
                 Touch();
-                if (CurrentFrameIndex == frameIndex)
-                    return CurrentFrame;
+                CachedFrames ??= new BitmapSource?[FrameRects.Length];
+                if (CachedFrames[frameIndex] is { } cached)
+                    return cached;
                 if (SpriteSheetSource == null)
                 {
                     var sheet = new BitmapImage();
                     sheet.BeginInit();
-                    sheet.CacheOption = BitmapCacheOption.OnDemand;
-                    sheet.CreateOptions = BitmapCreateOptions.DelayCreation;
+                    sheet.CacheOption = BitmapCacheOption.OnLoad;
                     sheet.UriSource = new Uri(Path);
                     sheet.EndInit();
                     sheet.Freeze();
@@ -438,9 +435,7 @@ namespace VPet_Simulator.Core
                 }
                 var frame = new CroppedBitmap(SpriteSheetSource, FrameRects[frameIndex]);
                 frame.Freeze();
-                CurrentFrame = frame;
-                CurrentFrameIndex = frameIndex;
-                return frame;
+                return CachedFrames[frameIndex] = frame;
             }
         }
 
@@ -453,8 +448,7 @@ namespace VPet_Simulator.Core
             {
                 if (Control?.PlayState == true || cleanTicks < Interlocked.Read(ref LastUseTimeTicks))
                     return;
-                CurrentFrame = null;
-                CurrentFrameIndex = -1;
+                CachedFrames = null;
                 SpriteSheetSource = null;
             }
         }
@@ -466,8 +460,7 @@ namespace VPet_Simulator.Core
             lock (SpriteSheetLock)
             {
                 IsReady = false;
-                CurrentFrame = null;
-                CurrentFrameIndex = -1;
+                CachedFrames = null;
                 SpriteSheetSource = null;
                 FrameRects = null;
             }

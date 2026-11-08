@@ -127,6 +127,12 @@ namespace VPet_Simulator.Windows
 
             GameInitialization();
 
+            if (Args.ContainsLine("diagnostic"))
+            {
+                ShowInTaskbar = true;
+                Title = "Rimuru Desktop Companion";
+            }
+
             Task.Run(async () =>
             {
                 //加载所有MOD
@@ -426,7 +432,14 @@ namespace VPet_Simulator.Windows
                       }
                       return false;
                   }]);
-            });
+            }).ContinueWith(task =>
+            {
+                var error = task.Exception!.Flatten().ToString();
+                File.WriteAllText(System.IO.Path.Combine(ExtensionValue.BaseDirectory, "startup-error.log"), error);
+                Dispatcher.BeginInvoke(new Action(() => MessageBoxX.Show(
+                    "Rimuru could not finish loading. Details were saved to startup-error.log.\n\n" + error,
+                    "Startup error", Panuon.WPF.UI.MessageBoxIcon.Error)));
+            }, TaskContinuationOptions.OnlyOnFaulted);
         }
 
         private void SteamFriends_OnGameLobbyJoinRequested(Lobby lobby, SteamId id)

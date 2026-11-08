@@ -1417,7 +1417,7 @@ namespace VPet_Simulator.Windows
 
         private void Github_Click(object sender, RoutedEventArgs e)
         {
-            ExtensionFunction.StartURL("https://github.com/LorisYounger/VPet");
+            ExtensionFunction.StartURL("https://github.com/TheApple05/VPetR");
         }
 
         private void LB_Click(object sender, RoutedEventArgs e)
@@ -1439,7 +1439,7 @@ namespace VPet_Simulator.Windows
             if (LocalizeCore.CurrentCulture.StartsWith("zh"))
                 ExtensionFunction.StartURL("https://space.bilibili.com/690425399");
             else
-                ExtensionFunction.StartURL("https://github.com/LorisYounger/VPet");
+                ExtensionFunction.StartURL("https://github.com/TheApple05/VPetR");
         }
         private void sendkey_click(object sender, RoutedEventArgs e)
         {

@@ -1,0 +1,73 @@
+{
+  "frame_count": 6,
+  "frame_ms": [
+    180,
+    160,
+    180,
+    180,
+    180,
+    300
+  ],
+  "jobs": [
+    {
+      "id": "sleep",
+      "label": "Sleeping",
+      "action": "Sit curled comfortably, hands resting together, eyes closed throughout, tiny breathing and soft head settling. No sleep symbols."
+    },
+    {
+      "id": "headpat",
+      "label": "Head pats",
+      "action": "Stand with arms relaxed; lean head into an imagined head pat, close eyes with a delighted smile, gently rock the head, recover. No external hand."
+    },
+    {
+      "id": "bodypat",
+      "label": "Happy touch",
+      "action": "Stand, bashful smile, hug scarf gently against chest, little shoulder wiggle, relax. Full coat and body, no new props."
+    },
+    {
+      "id": "eat",
+      "label": "Eating",
+      "action": "Hold a small golden bread roll in both hands touching the torso; bring to mouth, take a little bite and chew happily, lower it. Bread always attached to hands; no crumbs."
+    },
+    {
+      "id": "drink",
+      "label": "Drinking",
+      "action": "Hold one simple white mug in both hands against torso; raise to mouth, gently tilt to sip, blink, lower. Mug always touches hands; no steam or drops."
+    },
+    {
+      "id": "talk",
+      "label": "Talking",
+      "action": "Stand front-facing; small expressive attached hand gestures near chest with six distinct gentle mouth shapes as if speaking, friendly eye blink; return to relaxed pose. No speech bubble."
+    },
+    {
+      "id": "sit",
+      "label": "Sitting idle",
+      "action": "Sit cross-legged with coat draped naturally and hands on knees; blink and gentle breathing with tiny head tilt, relaxed friendly expression."
+    },
+    {
+      "id": "stretch",
+      "label": "Stretching",
+      "action": "Stand and perform a cozy full-body stretch: arms initially by sides, lift both arms overhead, reach up, little closed-eye yawn, lower arms. Keep boots on same floor baseline."
+    },
+    {
+      "id": "cheer",
+      "label": "Celebrating",
+      "action": "Stand, smile brightly, lift both small fists beside face in a victory gesture, brief happy knee bend and soft excited bounce, return. No stars or detached effects."
+    },
+    {
+      "id": "study",
+      "label": "Reading",
+      "action": "Sit and hold a compact dark brown book open with both hands close to body, look down to read, eyes scan, small page turn attached to book, thoughtful nod. No readable text."
+    },
+    {
+      "id": "carry",
+      "label": "Being carried",
+      "action": "Show the same whole character dangling gently as if picked up by the coat collar: shoulders slightly raised, arms near torso, boots hanging below with little alternating leg kicks, surprised then amused smile. No external hand or hanger."
+    },
+    {
+      "id": "rest",
+      "label": "Resting",
+      "action": "Sit with legs gathered and hands in lap, looking mildly tired, droopy eyelids and small sigh-mouth, tiny slow breathing, calm recovery. No sweat drops or illness symbols."
+    }
+  ]
+}

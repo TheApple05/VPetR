@@ -1,0 +1,13 @@
+pet#rimuru:|intor#A cheerful chibi companion inspired by your Rimuru art collection.:|path#rimuru:|petname#Rimuru:|
+tag#rimuru:|
+touchhead:|px#120:|py#80:|sw#260:|sh#230:|
+touchbody:|px#150:|py#300:|sw#200:|sh#150:|
+touchraised:|happy_px#110:|happy_py#70:|happy_sw#280:|happy_sh#240:|nomal_px#110:|nomal_py#70:|nomal_sw#280:|nomal_sh#240:|poorcondition_px#110:|poorcondition_py#70:|poorcondition_sw#280:|poorcondition_sh#240:|ill_px#110:|ill_py#70:|ill_sw#280:|ill_sh#240:|
+raisepoint:|happy_x#250:|happy_y#160:|nomal_x#250:|nomal_y#160:|poorcondition_x#250:|poorcondition_y#160:|ill_x#250:|ill_y#160:|
+side:|left#170:|right#330:|
+duration:|state#12:|resting#12:|sit#12:|stretch#10:|sleep#20:|
+work:|Type#Work:|Name#Focus session:|MoneyBase#8:|Graph#focus:|StrengthFood#2:|StrengthDrink#2:|Feeling#1:|Time#30:|FinishBonus#0.1:|Left#110:|Top#330:|Width#280:|
+work:|Type#Study:|Name#Study together:|MoneyBase#20:|Graph#study:|StrengthFood#2:|StrengthDrink#2:|Feeling#1:|Time#30:|FinishBonus#0.1:|Left#110:|Top#330:|Width#280:|
+work:|Type#Play:|Name#Take a break:|MoneyBase#8:|Graph#play:|StrengthFood#1:|StrengthDrink#1:|Feeling#-1:|Time#15:|FinishBonus#0.1:|Left#110:|Top#330:|Width#280:|
+move:|graph#walk.left:|TriggerLeft#200:|TriggerType#16:|CheckLeft#100:|CheckType#16:|SpeedX#-12:|Distance#6:|ModeType#14:|
+move:|graph#walk.right:|TriggerRight#200:|TriggerType#32:|CheckRight#100:|CheckType#32:|SpeedX#12:|Distance#6:|ModeType#14:|

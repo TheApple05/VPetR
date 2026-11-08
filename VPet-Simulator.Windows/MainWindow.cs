@@ -1538,10 +1538,10 @@ namespace VPet_Simulator.Windows
                 }
 
                 //不存在就关掉
-                var modpath = new DirectoryInfo(ModPath + @"\0000_core\pet\vup");
-                if (!modpath.Exists)
+                var coreManifest = System.IO.Path.Combine(ModPath, "0000_core", "info.lps");
+                if (!File.Exists(coreManifest))
                 {
-                    MessageBoxX.Show("缺少模组Core,无法启动桌宠\nMissing module Core, can't start up", "启动错误 boot error", Panuon.WPF.UI.MessageBoxIcon.Error);
+                    MessageBoxX.Show("The Core module is missing. Restore the mod/0000_core folder and try again.", "Startup error", Panuon.WPF.UI.MessageBoxIcon.Error);
                     Close();
                     return;
                 }
@@ -1707,6 +1707,8 @@ namespace VPet_Simulator.Windows
                 Set.PetGraph = "vup";
 
             //当前桌宠动画
+            if (Pets.Count == 0)
+                throw new InvalidOperationException("No character is enabled. Restore the Rimuru character module and restart the application.");
             var petloader = Pets.Find(x => x.Name == Set.PetGraph);
             petloader ??= Pets[0];
             //去除其他语言内容
@@ -1879,6 +1881,7 @@ namespace VPet_Simulator.Windows
             await Dispatcher.InvokeAsync(() => LoadingText.Content = "尝试启动桌宠".Translate());
             Main.NoFunctionMOD = Set.CalFunState;
             Main.Load_3_BindingTimer();
+            await Dispatcher.InvokeAsync(() => RimuruDiagnostics.Save(this));
             Main.Load_4_Start();
             await Dispatcher.InvokeAsync(() =>
               {

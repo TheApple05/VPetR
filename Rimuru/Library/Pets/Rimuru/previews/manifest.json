@@ -1,0 +1,9 @@
+{
+  "source": "final/spritesheet-extended.png",
+  "standard_states": 9,
+  "look_directions": 16,
+  "video": "all-states.mp4",
+  "gif": "all-states.gif",
+  "transition": "idle-jump-idle.gif",
+  "four_stills": "four-poses.png"
+}
