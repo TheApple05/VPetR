@@ -15,7 +15,7 @@ def allowed(path):
     if any(p.lower() in {'cache','saves','saves_bkp','backup'} for p in rel.parts):return False
     if len(rel.parts)==1 and path.name.lower().startswith('save') and path.suffix.lower()=='.lps':return False
     if path.suffix.lower() in {'.log','.bkp'}:return False
-    if path.name=='disable-auto-updates.txt':return False
+    if path.name=='disable-auto-updates.txt' or path.name.startswith('rimuru-update-'):return False
     if path.name.startswith(('rimuru-diagnostics','rimuru-live-control','Setting-')):return False
     return True
 

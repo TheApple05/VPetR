@@ -127,22 +127,6 @@ namespace VPet_Simulator.Windows
 
             GameInitialization();
 
-            if (!Args.ContainsLine("diagnostic"))
-            {
-                try
-                {
-                    var updater = System.IO.Path.Combine(ExtensionValue.BaseDirectory, "Update-Rimuru.ps1");
-                    if (File.Exists(updater) && !File.Exists(System.IO.Path.Combine(ExtensionValue.BaseDirectory, "disable-auto-updates.txt")))
-                        System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo("powershell.exe")
-                        {
-                            Arguments = "-NoProfile -ExecutionPolicy Bypass -File \"" + updater + "\"",
-                            UseShellExecute = false, CreateNoWindow = true,
-                            WorkingDirectory = ExtensionValue.BaseDirectory
-                        });
-                }
-                catch { /* Updates must never prevent the pet from starting. */ }
-            }
-
             if (Args.ContainsLine("diagnostic"))
             {
                 ShowInTaskbar = true;
@@ -527,6 +511,8 @@ namespace VPet_Simulator.Windows
 
 
         internal winMutiPlayer? winMutiPlayer;
+        internal bool RimuruUpdateReady;
+        internal bool ClosingForUpdate;
 
         public new void Close()
         {
@@ -822,7 +808,7 @@ namespace VPet_Simulator.Windows
                     mp.EndGame();
             }
             catch { }
-            Save();
+            if (!ClosingForUpdate) Save();
             Exit();
         }
 

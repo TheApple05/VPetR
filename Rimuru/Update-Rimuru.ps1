@@ -9,12 +9,10 @@ function Get-RimuruFileHash([string]$Path) {
     finally { $stream.Dispose();$algorithm.Dispose() }
 }
 
-function Install-RimuruPackage([string]$Package,[string]$Target,[string]$ExpectedVersion) {
+function Expand-RimuruPackage([string]$Package,[string]$ExpectedVersion) {
     Add-Type -AssemblyName System.IO.Compression.FileSystem
-    $targetRoot=[IO.Path]::GetFullPath($Target).TrimEnd('\')+'\'
     $stage=Join-Path ([IO.Path]::GetTempPath()) ('Rimuru-install-'+[guid]::NewGuid())
     $payload=Join-Path $stage 'payload'
-    $backup=Join-Path $stage 'backup'
     $zip=[IO.Compression.ZipFile]::OpenRead($Package)
     try {
         $total=0L
@@ -37,10 +35,16 @@ function Install-RimuruPackage([string]$Package,[string]$Target,[string]$Expecte
         if (-not (Test-Path -LiteralPath (Join-Path $payload $required) -PathType Leaf)) { throw "Incomplete update: $required" }
     }
     if ((Get-Content (Join-Path $payload 'rimuru-version.txt') -Raw).Trim() -ne $ExpectedVersion) { throw 'Update version mismatch.' }
+    return $payload
+}
+
+function Install-RimuruPayload([string]$payload,[string]$Target) {
+    $targetRoot=[IO.Path]::GetFullPath($Target).TrimEnd('\')+'\'
+    $backup=Join-Path ([IO.Path]::GetDirectoryName($payload)) 'backup'
     $files=@(Get-ChildItem -LiteralPath $payload -Recurse -File | Where-Object {
         $rel=$_.FullName.Substring($payload.Length+1)
         $rel -notmatch '(^|\\)(?i:cache|saves|saves_bkp|backup|update-backups)(\\|$)' -and
-        $rel -notmatch '^(?i:Setting.*|Save.*\.lps|disable-auto-updates.txt|startup-error.log)$' -and
+        $rel -notmatch '^(?i:Setting.*|Save.*\.lps|disable-auto-updates.txt|startup-error.log|rimuru-update-.*\.json(?:\.tmp)?)$' -and
         ($rel -notmatch '^mod\\' -or $rel -match '^mod\\(0000_core|0100_rimuru)\\')
     })
     $changed=[Collections.Generic.List[object]]::new()
@@ -77,6 +81,59 @@ function Install-RimuruPackage([string]$Package,[string]$Target,[string]$Expecte
     return $backup
 }
 
+function Install-RimuruPackage([string]$Package,[string]$Target,[string]$ExpectedVersion) {
+    Install-RimuruPayload (Expand-RimuruPackage $Package $ExpectedVersion) $Target
+}
+
+function ConvertTo-RimuruArgument([string]$Value) {
+    $escaped=[regex]::Replace($Value,'(\\*)"','$1$1\"')
+    '"'+[regex]::Replace($escaped,'(\\+)$','$1$1')+'"'
+}
+
+function Get-RimuruProcesses([string]$App) {
+    $exe=Join-Path $App 'VPet-Simulator.Windows.exe'
+    @(Get-Process -Name 'VPet-Simulator.Windows' -ErrorAction SilentlyContinue | Where-Object { $_.Path -eq $exe })
+}
+
+function Request-RimuruShutdown([string]$App,[string]$Version,$Plans,$Requests) {
+    $pets=@(Get-RimuruProcesses $App)
+    if (-not $pets.Count) { return }
+    $token=[guid]::NewGuid().ToString('N')
+    foreach ($pet in $pets) {
+        $path=Join-Path $App "rimuru-update-$($pet.Id).request.json"
+        $Requests.Add($path)
+        @{Token=$token;Version=$Version;HelperPid=$PID} | ConvertTo-Json | Set-Content -LiteralPath ($path+'.tmp') -Encoding utf8
+        Move-Item -LiteralPath ($path+'.tmp') -Destination $path -Force
+    }
+    $clock=[Diagnostics.Stopwatch]::StartNew()
+    $confirmed=@{}
+    do {
+        foreach ($pet in $pets) {
+            if ($confirmed.ContainsKey($pet.Id)) { continue }
+            $ack=Join-Path $App "rimuru-update-$($pet.Id).ack.json"
+            if (-not (Test-Path -LiteralPath $ack)) { continue }
+            $reply=Get-Content -LiteralPath $ack -Raw | ConvertFrom-Json
+            if ($reply.Token -ne $token -or $reply.Version -ne $Version -or $reply.HelperPid -ne $PID) { continue }
+            if (-not $reply.Saved) { throw 'The application could not save; automatic restart was cancelled.' }
+            $confirmed[$pet.Id]=$true
+            $Plans.Add(@{Id=$pet.Id;Arguments=@($reply.Arguments)})
+        }
+        if ($clock.Elapsed.TotalSeconds -gt 120) { throw 'Save/shutdown confirmation timed out; the updater will not force-close the pet.' }
+        Start-Sleep -Milliseconds 250
+    } until ($confirmed.Count -eq $pets.Count -and @(Get-RimuruProcesses $App).Count -eq 0)
+}
+
+function Restart-RimuruPlans([string]$App,$Plans) {
+    foreach ($plan in $Plans) {
+        if (@(Get-RimuruProcesses $App | Where-Object { $_.Id -eq $plan.Id }).Count) { continue }
+        $exe=Join-Path $App 'VPet-Simulator.Windows.exe'
+        if ($plan.Arguments.Count) {
+            $arguments=($plan.Arguments | ForEach-Object { ConvertTo-RimuruArgument ([string]$_) }) -join ' '
+            Start-Process -FilePath $exe -WorkingDirectory $App -ArgumentList $arguments | Out-Null
+        } else { Start-Process -FilePath $exe -WorkingDirectory $App | Out-Null }
+    }
+}
+
 if ($FunctionsOnly) { return }
 $app=[IO.Path]::GetFullPath($AppDirectory)
 if (Test-Path -LiteralPath (Join-Path $app 'disable-auto-updates.txt')) { exit }
@@ -85,6 +142,9 @@ $key=[BitConverter]::ToString($hasher.ComputeHash([Text.Encoding]::UTF8.GetBytes
 $hasher.Dispose()
 $mutex=[Threading.Mutex]::new($false,'Local\RimuruUpdate-'+$key)
 $locked=$false
+$plans=[Collections.Generic.List[object]]::new()
+$requests=[Collections.Generic.List[string]]::new()
+$backoff=Join-Path $app 'rimuru-update-failed.json'
 try {
     $locked=$mutex.WaitOne(0)
     if (-not $locked) { exit }
@@ -97,6 +157,12 @@ try {
         "Up to date: $current" | Set-Content -LiteralPath (Join-Path $app 'rimuru-update.log')
         exit
     }
+    if (Test-Path -LiteralPath $backoff) {
+        try {
+            $failed=Get-Content -LiteralPath $backoff -Raw | ConvertFrom-Json
+            if ($failed.Version -eq $version -and [DateTime]::UtcNow -lt [DateTime]::Parse($failed.RetryAfter).ToUniversalTime()) { exit }
+        } catch { }
+    }
     $asset=@($release.assets | Where-Object { $_.name -eq 'Rimuru-VPet-Portable-win-x64.zip' })
     if ($asset.Count -ne 1 -or $asset[0].digest -notmatch '^sha256:([0-9a-f]{64})$') { throw 'Missing update checksum.' }
     $hash=$Matches[1]
@@ -106,14 +172,27 @@ try {
     $download=Join-Path ([IO.Path]::GetTempPath()) ('Rimuru-download-'+[guid]::NewGuid()+'.zip')
     Invoke-WebRequest -UseBasicParsing -Uri $url -OutFile $download -TimeoutSec 600
     if ((Get-RimuruFileHash $download) -ne $hash) { throw 'Update checksum mismatch.' }
-    $exe=Join-Path $app 'VPet-Simulator.Windows.exe'
-    while (@(Get-Process -Name 'VPet-Simulator.Windows' -ErrorAction SilentlyContinue | Where-Object { $_.Path -eq $exe }).Count) { Start-Sleep -Seconds 2 }
-    $backup=Install-RimuruPackage $download $app $version
+    $payload=Expand-RimuruPackage $download $version
+    Request-RimuruShutdown $app $version $plans $requests
+    $backup=Install-RimuruPayload $payload $app
     Remove-Item -LiteralPath $download
-    "Installed $version. Previous application files: $backup" | Set-Content -LiteralPath (Join-Path $app 'rimuru-update.log')
+    if (Test-Path -LiteralPath $backoff) { Remove-Item -LiteralPath $backoff }
+    Restart-RimuruPlans $app $plans
+    "Installed $version. Restarted $($plans.Count) pet process(es). Previous application files: $backup" | Set-Content -LiteralPath (Join-Path $app 'rimuru-update.log')
 } catch {
-    try { $_.Exception.Message | Set-Content -LiteralPath (Join-Path $app 'rimuru-update.log') } catch { }
+    $message=$_.Exception.Message
+    try {
+        @{Version=$version;RetryAfter=[DateTime]::UtcNow.AddHours(6).ToString('O')} | ConvertTo-Json | Set-Content -LiteralPath $backoff
+        Restart-RimuruPlans $app $plans
+        $message | Set-Content -LiteralPath (Join-Path $app 'rimuru-update.log')
+    } catch { }
+
 } finally {
+    foreach ($request in $requests) {
+        foreach ($path in $request,($request -replace '\.request\.json$','.ack.json')) {
+            if (Test-Path -LiteralPath $path) { Remove-Item -LiteralPath $path -ErrorAction SilentlyContinue }
+        }
+    }
     if ($locked) { $mutex.ReleaseMutex() }
     $mutex.Dispose()
 }

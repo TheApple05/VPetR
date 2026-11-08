@@ -28,11 +28,15 @@ To use just the character, copy `VPet-Simulator.Windows/mod/0100_rimuru` into an
 
 ## Automatic updates
 
-On each normal launch, the app checks stable `rimuru-v` releases from **TheApple05/VPetR** in the background. New Windows portable downloads are verified against GitHub's SHA-256 digest and installed after all instances in this folder close normally. The next launch uses the update. Settings, saves, and other mods are preserved; replaced application files are backed up in the Windows temporary folder, and copy failures trigger rollback. Offline checks leave the installed version usable.
+On normal launch and every six hours while running, the app checks stable `rimuru-v` releases from **TheApple05/VPetR**. The helper downloads, verifies GitHub's SHA-256 digest, and fully validates/extracts the package before requesting shutdown. The app saves every open profile and confirms that its fresh snapshot and settings exist before closing. The helper waits for process exit, installs the update, and reopens the app with its previous launch arguments. It never force-kills the pet. This works without a visible main-window handle.
 
-Create an empty `disable-auto-updates.txt` beside the executable to turn off checks. Update results are written to `rimuru-update.log`. Diagnostic launches skip updates. Version 2.0.0 needs a one-time upgrade to 2.1.0 to gain this feature.
+Settings, saves, and other mods are preserved. Failed saves cancel the restart. Copy failures trigger rollback and reopen the previous app; failed versions have a six-hour retry delay to prevent restart loops. Replaced program files are backed up in the Windows temporary folder. Offline checks leave the installed version usable. Diagnostic launches skip network checks but still support the save/shutdown protocol for isolated testing.
+
+Create an empty `disable-auto-updates.txt` beside the executable to turn off checks. Update results are written to `rimuru-update.log`. Older versions need a one-time upgrade to 2.3.0 to gain automatic saving and reopening. IPC request/reply and retry records stay local and are excluded from release packages.
 
 ## Native checks
+
+`powershell -NoProfile -ExecutionPolicy Bypass -File .\Rimuru\tests\Auto-Restart-Checks.ps1` exercises the actual app in the isolated build folder: invalid requests, failed-save cancellation, persisted snapshot/settings, graceful exit, and a single restart. Run it only against the disposable build output.
 
 Run `python .\Rimuru\tests\check_phase_assets.py` for phase continuity and `dotnet run --project .\Rimuru\tests\RimuruChecks -c Release -p:CETCompat=false -- --behavior` for idle policy checks. The mod check also tests real WPF fades, interrupted fades, and live work/sleep/drag/click guards.
 

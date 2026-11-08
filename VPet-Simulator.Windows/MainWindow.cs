@@ -1,4 +1,4 @@
-using LinePutScript;
+﻿using LinePutScript;
 using LinePutScript.Converter;
 using LinePutScript.Dictionary;
 using LinePutScript.Localization.WPF;
@@ -258,6 +258,14 @@ namespace VPet_Simulator.Windows
         /// </summary>
         public void Save()
         {
+            if (!Dispatcher.CheckAccess()) { Dispatcher.Invoke(Save); return; }
+            SaveCore();
+        }
+
+        internal void SaveForUpdate() => SaveCore(true);
+
+        private void SaveCore(bool forUpdate = false)
+        {
             //保存日程表
             ScheduleTask?.Save();
             //保存Buff
@@ -278,6 +286,7 @@ namespace VPet_Simulator.Windows
             }
             catch (Exception e)
             {
+                if (forUpdate) throw;
                 MessageBox.Show(e.ToString(), "由于插件引起的保存错误".Translate());
             }
             //游戏存档
@@ -1883,6 +1892,7 @@ namespace VPet_Simulator.Windows
             Main.Load_3_BindingTimer();
             await Dispatcher.InvokeAsync(() => RimuruDiagnostics.Save(this));
             Main.Load_4_Start();
+            await Dispatcher.InvokeAsync(() => RimuruUpdateService.Start(this));
             await Dispatcher.InvokeAsync(() =>
               {
                   //清空资源
