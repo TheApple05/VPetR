@@ -1,5 +1,6 @@
 param([string]$AppDirectory=$PSScriptRoot,[switch]$FunctionsOnly)
 $ErrorActionPreference='Stop'
+$ProgressPreference='SilentlyContinue'
 
 function Install-RimuruPackage([string]$Package,[string]$Target,[string]$ExpectedVersion) {
     Add-Type -AssemblyName System.IO.Compression.FileSystem
