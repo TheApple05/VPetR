@@ -1,4 +1,4 @@
-"""Preview the twelve new loops from the actual exported native sprites."""
+"""Preview the generated native loops from the actual exported native sprites."""
 from pathlib import Path
 from PIL import Image,ImageDraw
 import json,subprocess,imageio_ffmpeg
@@ -17,7 +17,7 @@ for job in request['jobs']:
 out=run/'previews';out.mkdir(exist_ok=True)
 frames=[]
 for n in range(6):
-    grid=Image.new('RGB',(768,696),'#eaf0f7');draw=ImageDraw.Draw(grid)
+    grid=Image.new('RGB',(768,232*((len(request['jobs'])+3)//4)),'#eaf0f7');draw=ImageDraw.Draw(grid)
     for i,(job,images) in enumerate(zip(request['jobs'],loops,strict=True)):
         x=i%4*192;y=i//4*232;im=images[n].resize((192,192),Image.Resampling.LANCZOS)
         grid.paste(im,(x,y+30),im);draw.text((x+8,y+8),job['label'],fill='#15243b')

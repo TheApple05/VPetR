@@ -9,6 +9,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Threading;
+using System.Windows.Media.Animation;
 using static VPet_Simulator.Core.GraphInfo;
 
 namespace VPet_Simulator.Core
@@ -356,7 +357,7 @@ namespace VPet_Simulator.Core
         /// </summary>
         public void DisplayRaised()
         {
-            //位置迁移: 254-128           
+            //位置迁移: 254-128
             MainGrid.MouseMove -= MainGrid_MouseWave;
             MainGrid.MouseMove -= MainGrid_MouseMove;
             MainGrid.MouseMove += MainGrid_MouseMove;
@@ -519,6 +520,33 @@ namespace VPet_Simulator.Core
         /// 显示过的动画
         /// </summary>
         public event Action<GraphInfo>? GraphDisplayHandler;
+        private int transitionSerial;
+        private void ShowGraphLayer(Decorator incoming, Decorator outgoing, bool transition)
+        {
+            var serial = ++transitionSerial;
+            var oldOpacity = outgoing.Visibility == Visibility.Visible && outgoing.Child != null ? outgoing.Opacity : 0;
+            incoming.BeginAnimation(OpacityProperty, null);
+            outgoing.BeginAnimation(OpacityProperty, null);
+            incoming.Opacity = 1;
+            outgoing.Opacity = 0;
+            incoming.Visibility = Visibility.Visible;
+            var milliseconds = Math.Clamp(Core.Graph!.GraphConfig.Data["behavior"].GetInt("transition_ms", 0), 0, 250);
+            if (!transition || milliseconds == 0 || oldOpacity == 0)
+            {
+                outgoing.Visibility = Visibility.Hidden;
+                return;
+            }
+            outgoing.Visibility = Visibility.Visible;
+            var duration = TimeSpan.FromMilliseconds(milliseconds);
+            incoming.BeginAnimation(OpacityProperty, new DoubleAnimation(0, 1, duration) { FillBehavior = FillBehavior.Stop });
+            var fade = new DoubleAnimation(oldOpacity, 0, duration) { FillBehavior = FillBehavior.Stop };
+            fade.Completed += (_, _) =>
+            {
+                if (serial == transitionSerial) outgoing.Visibility = Visibility.Hidden;
+            };
+            outgoing.BeginAnimation(OpacityProperty, fade);
+        }
+
         /// <summary>
         /// 显示动画 (自动多层切换)
         /// </summary>
@@ -558,6 +586,7 @@ namespace VPet_Simulator.Core
             //{
             //    Dispatcher.Invoke(() => Say(graph.GraphType.ToString()));
             //}
+            var transition = DisplayType.SourceFolder != graph.GraphInfo.SourceFolder;
             DisplayType = graph.GraphInfo;
             GraphDisplayHandler?.Invoke(graph.GraphInfo);
             var PetGridTag = Dispatcher.Invoke(() => PetGrid.Tag);
@@ -569,8 +598,7 @@ namespace VPet_Simulator.Core
                     ig.Stop(true);
                 Dispatcher.Invoke(() =>
                 {
-                    PetGrid.Visibility = Visibility.Visible;
-                    PetGrid2.Visibility = Visibility.Hidden;
+                    ShowGraphLayer(PetGrid, PetGrid2, transition);
                 });
                 graph.Run(PetGrid, EndAction);//(x) => PetGrid.Child = x
                 return;
@@ -582,8 +610,7 @@ namespace VPet_Simulator.Core
                     ig.Stop(true);
                 Dispatcher.Invoke(() =>
                 {
-                    PetGrid2.Visibility = Visibility.Visible;
-                    PetGrid.Visibility = Visibility.Hidden;
+                    ShowGraphLayer(PetGrid2, PetGrid, transition);
                 });
                 graph.Run(PetGrid2, EndAction);
                 return;
@@ -595,8 +622,7 @@ namespace VPet_Simulator.Core
                 (PetGridTag as IGraph)?.Stop(true);
                 Dispatcher.Invoke(() =>
                 {
-                    PetGrid.Visibility = Visibility.Hidden;
-                    PetGrid2.Visibility = Visibility.Visible;
+                    ShowGraphLayer(PetGrid2, PetGrid, transition);
                     //PetGrid2.Tag = graph;
                 });
             }
@@ -606,13 +632,12 @@ namespace VPet_Simulator.Core
                 (PetGrid2Tag as IGraph)?.Stop(true);
                 Dispatcher.Invoke(() =>
                 {
-                    PetGrid2.Visibility = Visibility.Hidden;
-                    PetGrid.Visibility = Visibility.Visible;
+                    ShowGraphLayer(PetGrid, PetGrid2, transition);
                     //PetGrid.Tag = graph;
                 });
             }
             petgridcrlf = !petgridcrlf;
-            Task.Run(GC.Collect);
+
         }
         /// <summary>
         /// 查找可用与显示的Border (自动多层切换)
@@ -620,6 +645,7 @@ namespace VPet_Simulator.Core
         /// <param name="graph">动画</param>
         public Decorator FindDisplayBorder(IGraph graph)
         {
+            var transition = DisplayType.SourceFolder != graph.GraphInfo.SourceFolder;
             DisplayType = graph.GraphInfo;
             GraphDisplayHandler?.Invoke(graph.GraphInfo);
             var PetGridTag = Dispatcher.Invoke(() => PetGrid.Tag);
@@ -630,8 +656,7 @@ namespace VPet_Simulator.Core
                 (PetGrid2Tag as IGraph)?.Stop(true);
                 Dispatcher.Invoke(() =>
                 {
-                    PetGrid.Visibility = Visibility.Visible;
-                    PetGrid2.Visibility = Visibility.Hidden;
+                    ShowGraphLayer(PetGrid, PetGrid2, transition);
                 });
                 return PetGrid;
             }
@@ -641,8 +666,7 @@ namespace VPet_Simulator.Core
                 (PetGridTag as IGraph)?.Stop(true);
                 Dispatcher.Invoke(() =>
                 {
-                    PetGrid2.Visibility = Visibility.Visible;
-                    PetGrid.Visibility = Visibility.Hidden;
+                    ShowGraphLayer(PetGrid2, PetGrid, transition);
                 });
                 return PetGrid2;
             }
@@ -652,12 +676,11 @@ namespace VPet_Simulator.Core
                 (PetGridTag as IGraph)?.Stop(true);
                 Dispatcher.Invoke(() =>
                 {
-                    PetGrid.Visibility = Visibility.Hidden;
-                    PetGrid2.Visibility = Visibility.Visible;
+                    ShowGraphLayer(PetGrid2, PetGrid, transition);
                     //PetGrid2.Tag = graph;
                 });
                 petgridcrlf = !petgridcrlf;
-                Task.Run(GC.Collect);
+
                 return PetGrid2;
             }
             else
@@ -665,12 +688,11 @@ namespace VPet_Simulator.Core
                 (PetGrid2Tag as IGraph)?.Stop(true);
                 Dispatcher.Invoke(() =>
                 {
-                    PetGrid2.Visibility = Visibility.Hidden;
-                    PetGrid.Visibility = Visibility.Visible;
+                    ShowGraphLayer(PetGrid, PetGrid2, transition);
                     //PetGrid.Tag = graph;
                 });
                 petgridcrlf = !petgridcrlf;
-                Task.Run(GC.Collect);
+
                 return PetGrid;
             }
 

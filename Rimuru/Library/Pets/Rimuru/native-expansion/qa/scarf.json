@@ -1,0 +1,69 @@
+{
+  "ok": true,
+  "state": "scarf",
+  "frames": 6,
+  "shared_scale": 0.8877551020408163,
+  "source_sha256": "3e164eb60ff7921db1de2adeb853ffc20e39f0455a434a74a1b0c54d2a26005c",
+  "poses": [
+    {
+      "frame": 0,
+      "bbox": [
+        51,
+        28,
+        140,
+        203
+      ],
+      "sha256": "fb531c7921790ae8d52e456d4b7b67c809adc59e86cc508b3b3d5dfaa92083a2"
+    },
+    {
+      "frame": 1,
+      "bbox": [
+        51,
+        28,
+        140,
+        203
+      ],
+      "sha256": "b0b34072aa0ae599abcfd8725560bfec2a63c0160229300e77e6e36e51abb409"
+    },
+    {
+      "frame": 2,
+      "bbox": [
+        51,
+        28,
+        140,
+        203
+      ],
+      "sha256": "8e5c7a83afe697589f3f1af95dbc5f70a52610c62782b27cc856d6dbd5035734"
+    },
+    {
+      "frame": 3,
+      "bbox": [
+        51,
+        28,
+        140,
+        203
+      ],
+      "sha256": "f4268319ab4de8657216dd36a4248d72d481e1ebe94d3c1df392db8e5b049bbc"
+    },
+    {
+      "frame": 4,
+      "bbox": [
+        51,
+        28,
+        140,
+        203
+      ],
+      "sha256": "0aa30367106f18ddd1bddadce17c107fe9337877067ed595a60cf9eb06758ee9"
+    },
+    {
+      "frame": 5,
+      "bbox": [
+        51,
+        28,
+        140,
+        203
+      ],
+      "sha256": "ebc83b04ed51751d9b29da8f0c20797536c125d6c97c5de9d8eff89e509357ed"
+    }
+  ]
+}

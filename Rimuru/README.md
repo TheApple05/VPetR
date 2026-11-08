@@ -1,10 +1,16 @@
 # Rimuru desktop companion
 
-An English Rimuru character and animation upgrade for [TheApple05/VPetR](https://github.com/TheApple05/VPetR). The generated artwork includes 21 pose families, 129 exported PNG frames, and 106 native animation definitions.
+An English Rimuru character and animation upgrade for [TheApple05/VPetR](https://github.com/TheApple05/VPetR). The generated artwork includes 25 pose families, 153 source frames, 360 exported PNG frames, and 150 native animation definitions.
 
 New loops cover sleeping, head and body pats, eating, drinking, talking, sitting, stretching, celebrating, studying, carrying, and resting. Movement, waving, jumping, focused work, waiting, and inspection remain available. English is the default language and Rimuru is the default character.
 
 ![New animation previews](Library/Pets/Rimuru/native-expansion/previews/new-animations.gif)
+
+## Idle behavior and transitions
+
+Four new idle loops add looking around, scarf adjustment, yawning, and contented swaying. Low energy favors rest; late hours favor quiet actions; cheerful daytime allows swaying; longer inactivity prompts stretches, sitting, inspection, and occasional walking when there is room. Hunger and thirst lead to waiting animations without granting free food or drink. This works with simulation disabled too, using time and interaction cues.
+
+The policy leaves work, sleep, dragging, and recent clicks alone, uses a 35-second cooldown (rounded to the normal 15-second event tick), and excludes the previous idle choice. It replaces random sleep interruptions for this character. Start, loop, and end use separate sequences with matching boundary poses. A 160 ms crossfade softens changes between poses and safely handles interrupted transitions. Same-loop restarts skip the blend. Other characters retain their original scheduling and can opt into these features through their character config.
 
 ## Build and run
 
@@ -28,7 +34,9 @@ Create an empty `disable-auto-updates.txt` beside the executable to turn off che
 
 ## Native checks
 
-The WPF check program tests frozen-frame reuse, playback restarts, idle eviction, source-change invalidation, truncated-cache recovery, and disposal. Its mod check resolves 196 mood/action combinations and plays all 21 pose families through the real native renderer.
+Run `python .\Rimuru\tests\check_phase_assets.py` for phase continuity and `dotnet run --project .\Rimuru\tests\RimuruChecks -c Release -p:CETCompat=false -- --behavior` for idle policy checks. The mod check also tests real WPF fades, interrupted fades, and live work/sleep/drag/click guards.
+
+The WPF check program tests frozen-frame reuse, playback restarts, idle eviction, source-change invalidation, truncated-cache recovery, and disposal. Its mod check resolves 284 mood/action combinations and plays all 25 pose families through the real native renderer.
 
 ```powershell
 New-Item -ItemType Directory -Force .\Rimuru\dist\checks | Out-Null
@@ -36,7 +44,7 @@ dotnet run --project .\Rimuru\tests\RimuruChecks -c Release -p:CETCompat=false -
 dotnet run --project .\Rimuru\tests\RimuruChecks -c Release -p:CETCompat=false -- --mod .\VPet-Simulator.Windows\mod\0100_rimuru .\Rimuru\dist\checks\native.json
 ```
 
-Local Windows checks passed. In one controlled 30-second idle comparison after warmup, CPU usage fell from 1.85% to 0.60% of one core and mean private memory from 357.5 to 128.8 MiB. The focused 20,000-frame lookup check fell from 216.1 to 16.3 ms and from 11.84 MB allocated to 328 bytes. These are local measurements, not guarantees; startup did not improve.
+The 2.1 animation/cache baseline passed local Windows checks. In one controlled 30-second idle comparison after warmup, CPU usage fell from 1.85% to 0.60% of one core and mean private memory from 357.5 to 128.8 MiB. The focused 20,000-frame lookup check fell from 216.1 to 16.3 ms and from 11.84 MB allocated to 328 bytes. These are local measurements, not guarantees; startup did not improve.
 
 `scripts/Measure-Rimuru.ps1` measures an isolated build. Run it only against a disposable profile: diagnostics write files beside the executable. Keep movement and simulation settings identical between comparisons. `scripts/package_delivery.py` creates portable and character ZIPs from the default build output, excludes saves and caches, and checks the archive's integrity.
 
@@ -44,6 +52,6 @@ Local Windows checks passed. In one controlled 30-second idle comparison after w
 
 The source atlas, generated strips, extracted frames, pose hashes, and previews are included. Original private reference photos and account-specific ChatGPT Pets records are excluded. The optional strip extraction and base-atlas preview helpers require the installed Pets plugin; building from the checked-in frames does not.
 
-Eating and drinking use one bread roll and mug across their corresponding items. Wall climbing and full Steam integration are outside the validated scope. The ChatGPT Pet sprite format remains the original nine animation states and sixteen look directions; the extra twelve loops are native desktop animations.
+Eating and drinking use one bread roll and mug across their corresponding items. Wall climbing and full Steam integration are outside the validated scope. The ChatGPT Pet sprite format remains the original nine animation states and sixteen look directions; the extra sixteen loops are native desktop animations.
 
 This fork retains VPet's existing [license](../LICENSE) and attribution. See the [upstream English guide](../README_en.md) for the original project's documentation. Development and contributions for this version go only to TheApple05/VPetR.

@@ -1,5 +1,6 @@
 pet#rimuru:|intor#A cheerful chibi companion inspired by your Rimuru art collection.:|path#rimuru:|petname#Rimuru:|
 tag#rimuru:|
+behavior:|contextual#True:|transition_ms#160:|
 touchhead:|px#120:|py#80:|sw#260:|sh#230:|
 touchbody:|px#150:|py#300:|sw#200:|sh#150:|
 touchraised:|happy_px#110:|happy_py#70:|happy_sw#280:|happy_sh#240:|nomal_px#110:|nomal_py#70:|nomal_sw#280:|nomal_sh#240:|poorcondition_px#110:|poorcondition_py#70:|poorcondition_sw#280:|poorcondition_sh#240:|ill_px#110:|ill_py#70:|ill_sw#280:|ill_sh#240:|

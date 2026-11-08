@@ -2,7 +2,7 @@
 
 An English Rimuru companion built on VPet, maintained in [TheApple05/VPetR](https://github.com/TheApple05/VPetR).
 
-This upgrade adds **21 animation pose families and 129 frames**, dedicated interactions, and a reusable PNG frame cache that reduces repeated allocation during playback.
+This upgrade adds **25 animation pose families and 153 source frames**, contextual idle behavior, smoother phase transitions, and a reusable PNG frame cache that reduces repeated allocation during playback.
 
 ![Rimuru animation preview](Rimuru/Library/Pets/Rimuru/native-expansion/previews/new-animations.gif)
 

@@ -50,11 +50,12 @@ def main():
             path.parent.mkdir(parents=True,exist_ok=True)
             canvas.save(path)
     write(mod/'info.lps',
-          'vupmod#Rimuru Companion:|author#Personal Collection:|gamever#11000:|ver#200:|\n'
+          'vupmod#Rimuru Companion:|author#Personal Collection:|gamever#11000:|ver#220:|\n'
           'intro#A blue-haired golden-eyed companion inspired by your fan art. English edition.:|\n')
     geometry = '\n'.join([
         'pet#rimuru:|intor#A cheerful chibi companion inspired by your Rimuru art collection.:|path#rimuru:|petname#Rimuru:|',
         'tag#rimuru:|',
+        'behavior:|contextual#True:|transition_ms#160:|',
         'touchhead:|px#120:|py#80:|sw#260:|sh#230:|',
         'touchbody:|px#150:|py#300:|sw#200:|sh#150:|',
         'touchraised:|' + ''.join(f'{mode}_px#110:|{mode}_py#70:|{mode}_sw#280:|{mode}_sh#240:|' for mode in ['happy','nomal','poorcondition','ill']),
@@ -74,6 +75,7 @@ def main():
         ('raised','Raised_Static','carry'), ('touch.head','Touch_Head','headpat'),
         ('touch.body','Touch_Body','bodypat'), ('idle','Idel','idle'),
         ('sit','Idel','sit'), ('stretch','Idel','stretch'), ('rest','Idel','rest'), ('inspect','Idel','review'),
+        ('lookaround','Idel','lookaround'), ('scarf','Idel','scarf'), ('yawn','Idel','yawn'), ('sway','Idel','sway'),
         ('sleep','Sleep','sleep'), ('say','Say','talk'),
         ('resting','StateONE','sit'), ('resting','StateTWO','rest'),
         ('focus','Work','running'), ('study','Work','study'), ('play','Work','jumping'),
@@ -85,11 +87,27 @@ def main():
     lines=[]
     for name,kind,state in mappings:
         variants=(['A_Start','B_Loop','C_End'] if kind in
-                  {'Raised_Static','Touch_Head','Touch_Body','Sleep','Say','StateONE','StateTWO','Work','Move'} else ['Single'])
+                  {'Raised_Static','Touch_Head','Touch_Body','Sleep','Say','StateONE','StateTWO','Work','Move','Idel'} else ['Single'])
         for mode in ['Nomal','Ill']:
             for variant in variants:
                 used = 'rest' if mode=='Ill' and kind=='Default' else state
-                lines.append(f'pnganimation#{name}:|path#frames\\{used}:|graph#{kind}:|animat#{variant}:|mode#{mode}:|')
+                folder=used
+                if variant!='Single':
+                    phase={'A_Start':'start','B_Loop':'loop','C_End':'end'}[variant]
+                    folder=used+'\\'+phase
+                    images,durations=families[used]
+                    indices=([0,1] if phase=='start' else [1,0] if phase=='end' else
+                             list(range(1,len(images)-1))+list(range(len(images)-3,0,-1)))
+                    if kind=='Move':
+                        indices=([0] if phase=='start' else [len(images)-1,0] if phase=='end' else list(range(len(images))))
+                    target=pet/'frames'/used/phase
+                    target.mkdir(parents=True,exist_ok=True)
+                    for old in target.glob('*.png'):old.unlink()
+                    for n,index in enumerate(indices):
+                        source=pet/'frames'/used/f'{index:03}_{durations[index]}.png'
+                        # Phase frames reuse validated artwork; endpoints meet at identical poses.
+                        (target/f'{n:03}_{durations[index]}.png').write_bytes(source.read_bytes())
+                lines.append(f'pnganimation#{name}:|path#frames\\{folder}:|graph#{kind}:|animat#{variant}:|mode#{mode}:|')
     write(pet/'info.lps','\n'.join(lines)+'\n')
     dialogue = [
         'clicktext:|LikeMin#0:|State#Nomal:|Text#Hey! Ready to make something cool together?:|tag#rimuru:|',
@@ -103,14 +121,14 @@ def main():
     write(mod/'README-English.txt',
           'RIMURU COMPANION\n\nCopy this entire 0100_rimuru folder into a VPet mod folder.\n'
           'Enable it in Settings > Mods, select Rimuru, and select English. Restart VPet.\n\n'
-          'Includes 21 pose families and 129 frames, including dedicated sleep, touch,\n'
+          'Includes 25 pose families, contextual idle actions, and distinct start/loop/end phases,\n'
           'eating, drinking, talking, reading, carry, rest, stretch and celebration loops.\n'
-          'Random idle actions use sitting, stretching, resting and inspection.\n'
+          'Idle actions respond to energy, mood, time of day and interaction, with cooldowns.\n'
           'Eating and drinking show a bread roll and mug for all corresponding items.\n'
           'No code plugins, account credentials, or paid services are required.\n')
     report={'atlas':Path(os.path.relpath(args.atlas, ROOT.parent)).as_posix(),'atlas_sha256':hashlib.sha256(args.atlas.read_bytes()).hexdigest(),
             'png_frames':len(list(pet.rglob('*.png'))),'graph_definitions':len(lines),
-            'pose_families':len(families),'sprite_size':256,
+            'source_frames':sum(len(images) for images,_ in families.values()),'pose_families':len(families),'sprite_size':256,
             'families':{state:len(images) for state,(images,_) in families.items()},
             'character':'rimuru','language':'en','output':Path(os.path.relpath(mod, ROOT.parent)).as_posix()}
     write(mod/'export-manifest.json',json.dumps(report,indent=2))

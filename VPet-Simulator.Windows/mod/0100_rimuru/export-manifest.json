@@ -1,9 +1,10 @@
 {
   "atlas": "Rimuru/Library/Pets/Rimuru/final/spritesheet-extended.png",
   "atlas_sha256": "f5eb5790e4e1d8f7ca7009a9e7c3bedd20fbb9e3d8da1a0f950e4a0a3730f2bb",
-  "png_frames": 129,
-  "graph_definitions": 106,
-  "pose_families": 21,
+  "png_frames": 360,
+  "graph_definitions": 150,
+  "source_frames": 153,
+  "pose_families": 25,
   "sprite_size": 256,
   "families": {
     "idle": 6,
@@ -26,7 +27,11 @@
     "cheer": 6,
     "study": 6,
     "carry": 6,
-    "rest": 6
+    "rest": 6,
+    "lookaround": 6,
+    "scarf": 6,
+    "yawn": 6,
+    "sway": 6
   },
   "character": "rimuru",
   "language": "en",

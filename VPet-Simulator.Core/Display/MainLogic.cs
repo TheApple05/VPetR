@@ -515,6 +515,12 @@ namespace VPet_Simulator.Core
             //UIHandle
             Dispatcher.Invoke(() => TimeUIHandle?.Invoke(this));
 
+            if (Core.Graph!.GraphConfig.Data["behavior"].GetBool("contextual"))
+            {
+                DisplayContextualIdle();
+                return;
+            }
+
             if (IsIdel)
             {
                 int rnddisplay = Math.Max(20, Core.Controller!.InteractionCycle - CountNomal);

@@ -68,6 +68,26 @@
       "id": "rest",
       "label": "Resting",
       "action": "Sit with legs gathered and hands in lap, looking mildly tired, droopy eyelids and small sigh-mouth, tiny slow breathing, calm recovery. No sweat drops or illness symbols."
+    },
+    {
+      "id": "lookaround",
+      "label": "Looking around",
+      "action": "Glance left, up, and right, blink and return."
+    },
+    {
+      "id": "scarf",
+      "label": "Adjusting scarf",
+      "action": "Tuck scarf, smile, and lower hands."
+    },
+    {
+      "id": "yawn",
+      "label": "Sleepy yawn",
+      "action": "Cover a yawn and settle back to neutral."
+    },
+    {
+      "id": "sway",
+      "label": "Contented sway",
+      "action": "Shift weight gently and smile."
     }
   ]
 }
