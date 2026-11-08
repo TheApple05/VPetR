@@ -4,6 +4,9 @@ Add-Type -AssemblyName System.IO.Compression.FileSystem
 $root=Join-Path ([IO.Path]::GetTempPath()) ('Rimuru-update-tests-'+[guid]::NewGuid())
 New-Item -ItemType Directory -Path $root | Out-Null
 function Assert($Condition,$Message) { if (-not $Condition) { throw $Message } }
+$hashInput=Join-Path $root 'hash.txt'
+[IO.File]::WriteAllText($hashInput,'abc',[Text.Encoding]::ASCII)
+Assert ((Get-RimuruFileHash $hashInput) -eq 'BA7816BF8F01CFEA414140DE5DAE2223B00361A396177A9CB410FF61F20015AD') 'Checksum implementation failed the SHA-256 known vector.'
 function Package($Name,$Extra=@{},$Version='9.0.0') {
     $path=Join-Path $root ($Name+'.zip')
     $zip=[IO.Compression.ZipFile]::Open($path,'Create')

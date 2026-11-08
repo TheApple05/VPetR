@@ -2,6 +2,13 @@ param([string]$AppDirectory=$PSScriptRoot,[switch]$FunctionsOnly)
 $ErrorActionPreference='Stop'
 $ProgressPreference='SilentlyContinue'
 
+function Get-RimuruFileHash([string]$Path) {
+    $stream=[IO.File]::OpenRead([IO.Path]::GetFullPath($Path))
+    $algorithm=[Security.Cryptography.SHA256]::Create()
+    try { return [BitConverter]::ToString($algorithm.ComputeHash($stream)).Replace('-','') }
+    finally { $stream.Dispose();$algorithm.Dispose() }
+}
+
 function Install-RimuruPackage([string]$Package,[string]$Target,[string]$ExpectedVersion) {
     Add-Type -AssemblyName System.IO.Compression.FileSystem
     $targetRoot=[IO.Path]::GetFullPath($Target).TrimEnd('\')+'\'
@@ -98,7 +105,7 @@ try {
     if (-not $url.StartsWith('https://github.com/TheApple05/VPetR/releases/download/'+$release.tag_name+'/')) { throw 'Unexpected update source.' }
     $download=Join-Path ([IO.Path]::GetTempPath()) ('Rimuru-download-'+[guid]::NewGuid()+'.zip')
     Invoke-WebRequest -UseBasicParsing -Uri $url -OutFile $download -TimeoutSec 600
-    if ((Get-FileHash -LiteralPath $download -Algorithm SHA256).Hash -ne $hash) { throw 'Update checksum mismatch.' }
+    if ((Get-RimuruFileHash $download) -ne $hash) { throw 'Update checksum mismatch.' }
     $exe=Join-Path $app 'VPet-Simulator.Windows.exe'
     while (@(Get-Process -Name 'VPet-Simulator.Windows' -ErrorAction SilentlyContinue | Where-Object { $_.Path -eq $exe }).Count) { Start-Sleep -Seconds 2 }
     $backup=Install-RimuruPackage $download $app $version
