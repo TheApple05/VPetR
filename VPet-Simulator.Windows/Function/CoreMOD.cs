@@ -326,6 +326,12 @@ namespace VPet_Simulator.Windows
                             SuccessLoad = false;
                             break;
                         }
+                        // Check the whole code set before a signed entry can load an unsigned dependency.
+                        if (!PluginScan.AllTrusted && PluginScan.Files.Count != 0 && !IsPassMOD(mw))
+                        {
+                            SuccessLoad = false;
+                            break;
+                        }
                         var loadPath = System.IO.Path.Combine(di.FullName, "load.lps");
                         var loadfile = File.Exists(loadPath) ? new LpsDocument(File.ReadAllText(loadPath)) : new LpsDocument();
                         string authtype = "";
@@ -358,11 +364,6 @@ namespace VPet_Simulator.Windows
                                 else
                                 {
                                     authtype = "FAIL";
-                                    if (!IsPassMOD(mw))
-                                    {//不是通过模组,不加载
-                                        SuccessLoad = false;
-                                        continue;
-                                    }
                                 }
                                 if (reuse)
                                 {
@@ -413,11 +414,8 @@ namespace VPet_Simulator.Windows
 #endif
         }
         public bool IsOnMOD(MainWindow mw) => mw.Set.IsOnMod(Name);
-#if DEBUG
-        public bool IsPassMOD(MainWindow mw) => true;
-#else
-        public bool IsPassMOD(MainWindow mw) => mw.Set.IsPassMOD(Name);
-#endif
+        public bool IsPassMOD(MainWindow mw) =>
+            PluginScan != null && mw.Set.IsPassMOD(Name, PluginScan.AuthorizationFingerprint(Path));
 
         public void WriteFile()
         {
@@ -452,12 +450,10 @@ namespace VPet_Simulator.Windows
                 return false;
             return line.Find(ModName.ToLowerInvariant()) != null;
         }
-        internal static bool IsPassMOD(this Setting t, string ModName)
+        internal static bool IsPassMOD(this Setting t, string ModName, string fingerprint)
         {
-            var line = t.FindLine("passmod");
-            if (line == null)
-                return false;
-            return line.Find(ModName.ToLowerInvariant()) != null;
+            return string.Equals(t.FindLine("passmod")?.Find(ModName.ToLowerInvariant())?.Info,
+                fingerprint, StringComparison.Ordinal);
         }
         internal static bool IsMSGMOD(this Setting t, string ModName)
         {
@@ -477,9 +473,9 @@ namespace VPet_Simulator.Windows
         {
             t.FindorAddLine("onmod").Remove(ModName.ToLowerInvariant());
         }
-        internal static void PassMod(this Setting t, string ModName)
+        internal static void PassMod(this Setting t, string ModName, string fingerprint)
         {
-            t.FindorAddLine("passmod").AddorReplaceSub(new Sub(ModName.ToLowerInvariant()));
+            t.FindorAddLine("passmod").AddorReplaceSub(new Sub(ModName.ToLowerInvariant(), fingerprint));
         }
         internal static void PassModRemove(this Setting t, string ModName)
         {

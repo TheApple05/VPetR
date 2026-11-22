@@ -55,6 +55,15 @@ internal static class WorkshopProbablyCheck
         public bool Blocked => BlockReasons.Count != 0;
         public bool AllTrusted => Files.Count != 0 && Files.All(x => x.Trusted);
 
+        internal string AuthorizationFingerprint(DirectoryInfo directory)
+        {
+            var installation = Path.TrimEndingDirectorySeparator(directory.FullName).ToUpperInvariant();
+            var files = Files.OrderBy(file => file.RelativePath, StringComparer.OrdinalIgnoreCase)
+                .Select(file => file.RelativePath.ToUpperInvariant() + "\0" + file.Hash);
+            return Convert.ToHexString(SHA256.HashData(
+                Encoding.UTF8.GetBytes(installation + "\0" + string.Join("\0", files))));
+        }
+
         public void Add(string category, string file, string method = "", string api = "", bool compatibility = false, MemberReference? member = null)
         {
             Categories.Add(category);

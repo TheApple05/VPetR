@@ -794,10 +794,10 @@ namespace VPet_Simulator.Windows
                 && plugin.GetType().Assembly.Location.Contains(mod.Path.FullName)) ? Visibility.Visible : Visibility.Collapsed;
 
             ButtonAllow.Visibility = Visibility.Collapsed;
-            if (!modInfo.IsPlugin || mw.Set.IsPassMOD(modInfo.Name)) return;
+            if (!modInfo.IsPlugin || modInfo.CoreMod?.IsPassMOD(mw) == true) return;
             bool needsAuthorization = modInfo.CoreMod?.PluginScan?.Files.Exists(f => !f.Trusted) ??
                 await Task.Run(() => WorkshopProbablyCheck.HasUnsignedDll(modInfo.Path));
-            if (needsAuthorization && selectedModInfo == modInfo && !mw.Set.IsPassMOD(modInfo.Name))
+            if (needsAuthorization && selectedModInfo == modInfo && modInfo.CoreMod?.IsPassMOD(mw) != true)
                 ButtonAllow.Visibility = Visibility.Visible;
         }
 
@@ -1262,12 +1262,12 @@ namespace VPet_Simulator.Windows
                     WorkshopProbablyCheck.ShowResult(this, modInfo.Name, result, false);
                     return false;
                 }
-                if (result.Files.Any(file => !file.Trusted) && !mw.Set.IsPassMOD(modInfo.Name))
+                var fingerprint = result.AuthorizationFingerprint(modInfo.Path);
+                if (result.Files.Any(file => !file.Trusted) && !mw.Set.IsPassMOD(modInfo.Name, fingerprint))
                 {
                     if (!WorkshopProbablyCheck.ShowResult(this, modInfo.Name, result, true)) return false;
-                    // 确认只授权本次选中的 MOD；启动时仍重新检查 DLL。
                     if (IsStale()) return false;
-                    mw.Set.PassMod(modInfo.Name);
+                    mw.Set.PassMod(modInfo.Name, fingerprint);
                 }
                 return true;
             }
